@@ -67,6 +67,8 @@ module ActiveRecord
         merged_relation.order_values += r.order_values
       end
 
+      merged_relation.unions_values = (merged_relation.unions_values || []) + (r.unions_values || [])
+
       # Apply scope extension modules
       merged_relation.send :apply_modules, r.extensions
 

@@ -6,7 +6,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     attr_accessor :includes_values, :eager_load_values, :preload_values,
-                  :select_values, :group_values, :order_values, :joins_values,
+                  :select_values, :group_values, :order_values, :joins_values, :unions_values,
                   :where_values, :having_values, :bind_values,
                   :limit_value, :offset_value, :lock_value, :readonly_value, :create_with_value,
                   :from_value, :reordering_value, :reverse_order_value,
@@ -129,9 +129,18 @@ module ActiveRecord
       relation
     end
 
+    def union(*args)
+      return self if args.compact.blank?
+      
+      relation = clone
+      
+      relation.unions_values ||= []
+      relation.unions_values += args
+      relation
+    end
+
     def where(opts, *rest)
       return self if opts.blank?
-
       relation = clone
       relation.where_values += build_where(opts, rest)
       relation
@@ -284,7 +293,11 @@ module ActiveRecord
       arel.from(@from_value) if @from_value
       arel.lock(@lock_value) if @lock_value
 
-      arel
+      if @unions_values.blank?
+        arel
+      else        
+        build_union(arel, @unions_values)
+      end
     end
 
     private
@@ -373,6 +386,10 @@ module ActiveRecord
       manager.join_sources.concat join_list
 
       manager
+    end
+
+    def build_union(arel, unions)      
+      arel.union(*unions.map {|union| union.build_arel})
     end
 
     def build_select(arel, selects)
