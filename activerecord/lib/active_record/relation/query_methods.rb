@@ -143,6 +143,11 @@ module ActiveRecord
       return self if opts.blank?
       relation = clone
       relation.where_values += build_where(opts, rest)
+      if !relation.unions_values.blank?
+        relation.unions_values.each do |e|
+          e.where_values = relation.where_values
+        end
+      end
       relation
     end
 
