@@ -394,7 +394,7 @@ module ActiveRecord
     end
 
     def build_union(arel, unions)      
-      arel.union(*unions.map {|union| union.build_arel})
+      arel.union(unions.map {|union| union.build_arel})
     end
 
     def build_select(arel, selects)
