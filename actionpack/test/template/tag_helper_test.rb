@@ -29,6 +29,14 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p included=\"\" />", tag("p", :included => '')
   end
 
+  def test_tag_options_accepts_symbol_option_when_not_escaping
+    assert_equal "<p value=\"symbol\" />", tag("p", { :value => :symbol }, false, false)
+  end
+
+  def test_tag_options_accepts_integer_option_when_not_escaping
+    assert_equal "<p value=\"42\" />", tag("p", { :value => 42 }, false, false)
+  end
+
   def test_tag_options_converts_boolean_option
     assert_equal '<p disabled="disabled" multiple="multiple" readonly="readonly" />',
       tag("p", :disabled => true, :multiple => true, :readonly => true)
@@ -99,6 +107,16 @@ class TagHelperTest < ActionView::TestCase
     ['1&amp;2', '1 &lt; 2', '&#8220;test&#8220;'].each do |escaped|
       assert_equal %(<a href="#{escaped}" />), tag('a', :href => escaped.html_safe)
     end
+  end
+
+  def test_tag_does_not_honor_html_safe_double_quotes_as_attributes
+    assert_dom_equal '<p title="&quot;">content</p>',
+      content_tag('p', "content", :title => '"'.html_safe)
+  end
+
+  def test_data_tag_does_not_honor_html_safe_double_quotes_as_attributes
+    assert_dom_equal '<p data-title="&quot;">content</p>',
+      content_tag('p', "content", :data => { :title => '"'.html_safe })
   end
 
   def test_skip_invalid_escaped_attributes

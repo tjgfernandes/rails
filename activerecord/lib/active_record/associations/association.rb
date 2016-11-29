@@ -28,6 +28,7 @@ module ActiveRecord
         @target = nil
         @owner, @reflection = owner, reflection
         @updated = false
+        @stale_state = nil
 
         reset
         reset_scope
@@ -158,7 +159,7 @@ module ActiveRecord
       end
 
       def interpolate(sql, record = nil)
-        if sql.respond_to?(:to_proc)
+        if sql.respond_to?(:to_proc) && !sql.is_a?(Hash)
           owner.send(:instance_exec, record, &sql)
         else
           sql
